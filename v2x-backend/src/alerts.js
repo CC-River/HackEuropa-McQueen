@@ -8,15 +8,15 @@ function getSeverity(car1, car2) {
   return 'SEVERE';
 }
 
-function buildCollisionAlert(car1, car2, ttc, distance) {
+function buildCollisionAlert(car1Id, car2Id, ttc, distance, car1, car2) {
   return {
     type: 'COLLISION_WARNING',
-    vehicleId: car1.id,
-    message: `Collision imminent with ${car2.id}! TTC: ${ttc.toFixed(1)}s`,
+    vehicleId: car1Id,
+    message: `Collision imminent with ${car2Id}! TTC: ${ttc.toFixed(1)}s`,
     location: { lat: car1.lat, lng: car1.lng },
     timestamp: Date.now(),
     severity: getSeverity(car1, car2),
-    involved: [car1.id, car2.id] // Custom prop for suppression logic
+    involved: [car1Id, car2Id] // Custom prop for suppression logic
   };
 }
 
