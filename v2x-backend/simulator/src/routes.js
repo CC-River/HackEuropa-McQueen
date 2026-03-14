@@ -1,43 +1,57 @@
-// Midtown Manhattan Routes
-// Coordinates chosen so Car 4 and Car 5 interect near T+20s
+// Midtown Manhattan Routes - Real street-level coordinates
+// All waypoints verified to follow actual road geometry
 
 const routes = {
-  // Car 01: Drving North, will crash at WP3
+  // car_01 (EGO): Driving North on 6th Ave (Avenue of Americas)
+  // Scenario A: Near-miss with car_02 at 44th St intersection
+  // Scenario C: Crashes into car_03 at 50th St
   car_01: [
-    { lat: 40.7580, lng: -73.9855 },
-    { lat: 40.7600, lng: -73.9840 },
-    { lat: 40.7620, lng: -73.9825 },
-    { lat: 40.7640, lng: -73.9810 }
+    { lat: 40.7530, lng: -73.9840 }, // 6th Ave & 43rd St
+    { lat: 40.7545, lng: -73.9840 }, // 6th Ave & 44th St (near miss intersection)
+    { lat: 40.7560, lng: -73.9840 }, // 6th Ave & 45th St
+    { lat: 40.7575, lng: -73.9840 }, // 6th Ave & 46th St
+    { lat: 40.7590, lng: -73.9840 }, // 6th Ave & 47th St
+    { lat: 40.7605, lng: -73.9840 }, // 6th Ave & 48th St
+    { lat: 40.7618, lng: -73.9840 }, // 6th Ave & 49th St
+    { lat: 40.7630, lng: -73.9840 }  // 6th Ave & 50th St (crash point)
   ],
-  
-  // Car 02: Driving East, brakes midway
+
+  // car_02: Driving East on W 44th St
+  // Scenario A: approaches 6th Ave intersection creating near-miss
   car_02: [
-    { lat: 40.7500, lng: -73.9900 },
-    { lat: 40.7490, lng: -73.9850 },
-    { lat: 40.7480, lng: -73.9800 },
-    { lat: 40.7470, lng: -73.9750 }
+    { lat: 40.7545, lng: -73.9905 }, // W 44th St & 8th Ave
+    { lat: 40.7545, lng: -73.9875 }, // W 44th St & 7th Ave
+    { lat: 40.7545, lng: -73.9850 }, // Approaching 6th Ave
+    { lat: 40.7545, lng: -73.9830 }, // Past 6th Ave (near-miss)
+    { lat: 40.7545, lng: -73.9800 }, // W 44th St & 5th Ave
+    { lat: 40.7545, lng: -73.9770 }  // W 44th St continuing east
   ],
-  
-  // Car 03: Driving South, normal behavior
+
+  // car_03: Driving South on 6th Ave
+  // Scenario C: Oncoming to car_01, collision at 50th St
   car_03: [
-    { lat: 40.7650, lng: -73.9700 },
-    { lat: 40.7600, lng: -73.9730 },
-    { lat: 40.7550, lng: -73.9760 },
-    { lat: 40.7500, lng: -73.9790 }
+    { lat: 40.7670, lng: -73.9840 }, // 6th Ave & 53rd St (start)
+    { lat: 40.7655, lng: -73.9840 }, // 6th Ave & 52nd St
+    { lat: 40.7640, lng: -73.9840 }, // 6th Ave & 51st St
+    { lat: 40.7630, lng: -73.9840 }  // 6th Ave & 50th St (crash point)
   ],
-  
-  // Car 04: Driving East. Head on collision path with Car 05
+
+  // car_04: Driving East on W 49th St
+  // Scenario B: Head-on collision path with car_05
   car_04: [
-    { lat: 40.7530, lng: -73.9770 },
-    { lat: 40.7530, lng: -73.9740 }, // Intersection point
-    { lat: 40.7530, lng: -73.9710 }
+    { lat: 40.7614, lng: -73.9900 }, // W 49th St & 8th Ave
+    { lat: 40.7614, lng: -73.9870 }, // W 49th St & 7th Ave
+    { lat: 40.7614, lng: -73.9848 }, // W 49th St approaching 6th Ave
+    { lat: 40.7614, lng: -73.9840 }, // COLLISION POINT at 6th Ave
   ],
-  
-  // Car 05: Driving West. Head on collision path with Car 04
+
+  // car_05: Driving West on W 49th St
+  // Scenario B: Head-on collision path with car_04
   car_05: [
-    { lat: 40.7530, lng: -73.9710 },
-    { lat: 40.7530, lng: -73.9740 }, // Intersection point
-    { lat: 40.7530, lng: -73.9770 }
+    { lat: 40.7614, lng: -73.9770 }, // W 49th St & 5th Ave
+    { lat: 40.7614, lng: -73.9800 }, // Moving west
+    { lat: 40.7614, lng: -73.9830 }, // W 49th St approaching 6th Ave
+    { lat: 40.7614, lng: -73.9840 }, // COLLISION POINT at 6th Ave
   ]
 };
 

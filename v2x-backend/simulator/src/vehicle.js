@@ -9,6 +9,9 @@ class Vehicle {
     this.braking = false;
     this.status = 'normal';
     
+    // Vehicles start INACTIVE - they won't move until a scenario activates them
+    this.active = false;
+    
     this.currentWaypointIndex = 0;
     
     // Set initial position to first waypoint
@@ -17,7 +20,8 @@ class Vehicle {
   }
 
   move() {
-    if (this.speed === 0 || this.status === 'crash') return;
+    // Do NOT move if inactive, stopped, or crashed
+    if (!this.active || this.speed === 0 || this.status === 'crash') return;
 
     const target = this.route[this.currentWaypointIndex];
     if (!target) return; // Reached End of Array
@@ -48,9 +52,10 @@ class Vehicle {
       this.lng = target.lng;
       this.currentWaypointIndex++;
       
-      // Loop if at the end
+      // Stop at the end of route (don't loop)
       if (this.currentWaypointIndex >= this.route.length) {
-        this.currentWaypointIndex = 0;
+        this.currentWaypointIndex = this.route.length - 1;
+        this.active = false; // Deactivate when route is complete
       }
     } else {
       // Move one step ahead
@@ -69,6 +74,7 @@ class Vehicle {
       heading: this.heading,
       braking: this.braking,
       status: this.status,
+      active: this.active,
       timestamp: Date.now()
     };
     
@@ -80,6 +86,7 @@ class Vehicle {
     this.speed = this.originalSpeed;
     this.braking = false;
     this.status = 'normal';
+    this.active = false; // Deactivated on reset
     this.currentWaypointIndex = 0;
     this.lat = this.route[0].lat;
     this.lng = this.route[0].lng;
