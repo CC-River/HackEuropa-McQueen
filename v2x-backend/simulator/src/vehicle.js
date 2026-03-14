@@ -68,7 +68,8 @@ class Vehicle {
       speed: this.speed,
       heading: this.heading,
       braking: this.braking,
-      status: this.status
+      status: this.status,
+      timestamp: Date.now()
     };
     
     // 'telemetry' is the event required
