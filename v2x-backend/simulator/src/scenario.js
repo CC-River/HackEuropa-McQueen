@@ -1,5 +1,9 @@
 let scenarioTimeouts = [];
 
+function getRouteEndPoint(vehicle) {
+  return vehicle.route[vehicle.route.length - 1];
+}
+
 /**
  * Scenario A: Near-miss collision warning involving our car (car_01) and car_02.
  * car_01 drives north on 6th Ave; car_02 drives east on W 44th St.
@@ -89,19 +93,21 @@ function runScenarioB(vehicles, socket) {
     car05.speed = 0;
     car05.active = false;
 
+    const crashPoint = getRouteEndPoint(car04);
+
     // Snap both to the collision point (last waypoint, which is the same for both)
-    car04.lat = 40.7614;
-    car04.lng = -73.9840;
-    car05.lat = 40.7614;
-    car05.lng = -73.9840;
+    car04.lat = crashPoint.lat;
+    car04.lng = crashPoint.lng;
+    car05.lat = crashPoint.lat;
+    car05.lng = crashPoint.lng;
 
     socket.emit('sos', {
       type: 'SOS',
       severity: 'CRITICAL',
       message: 'CRASH DETECTED: car_04 and car_05 have collided on W 49th St at 6th Ave.',
       vehicleId: 'car_04',
-      lat: 40.7614,
-      lng: -73.9840,
+      lat: crashPoint.lat,
+      lng: crashPoint.lng,
       timestamp: Date.now()
     });
   }, 12000));
@@ -110,7 +116,7 @@ function runScenarioB(vehicles, socket) {
 /**
  * Scenario C: Our car (car_01) collides with car_03.
  * car_01 drives north; car_03 drives south toward it.
- * They collide at 50th St — SOS fires with emergency services notification.
+ * They collide farther up 6th Ave — SOS fires with emergency services notification.
  */
 function runScenarioC(vehicles, socket) {
   console.log('--- SCENARIO C: OUR CAR CRASHES — EMERGENCY SERVICES ---');
@@ -150,19 +156,21 @@ function runScenarioC(vehicles, socket) {
     car03.speed = 0;
     car03.active = false;
 
-    // Snap to crash point (end of car_01 route = start of car_03 route = same spot)
-    car01.lat = 40.7630;
-    car01.lng = -73.9840;
-    car03.lat = 40.7630;
-    car03.lng = -73.9840;
+    const crashPoint = getRouteEndPoint(car01);
+
+    // Snap to crash point (end of car_01 route = end of car_03 route = same spot)
+    car01.lat = crashPoint.lat;
+    car01.lng = crashPoint.lng;
+    car03.lat = crashPoint.lat;
+    car03.lng = crashPoint.lng;
 
     socket.emit('sos', {
       type: 'SOS',
       severity: 'CRITICAL',
-      message: 'CRASH DETECTED: Our vehicle (car_01) has collided with car_03. EMERGENCY SERVICES NOTIFIED.',
+      message: 'CRASH DETECTED: Our vehicle (car_01) has collided with car_03 on 6th Ave. EMERGENCY SERVICES NOTIFIED.',
       vehicleId: 'car_01',
-      lat: 40.7630,
-      lng: -73.9840,
+      lat: crashPoint.lat,
+      lng: crashPoint.lng,
       emergency: true,
       timestamp: Date.now()
     });

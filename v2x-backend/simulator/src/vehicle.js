@@ -1,3 +1,26 @@
+const METERS_PER_LAT_DEGREE = 111320;
+const POSITION_EPSILON_METERS = 0.05;
+
+function metersPerLngDegree(lat) {
+  return METERS_PER_LAT_DEGREE * Math.cos((lat * Math.PI) / 180);
+}
+
+function distanceMeters(from, to) {
+  const midLat = (from.lat + to.lat) / 2;
+  const northMeters = (to.lat - from.lat) * METERS_PER_LAT_DEGREE;
+  const eastMeters = (to.lng - from.lng) * metersPerLngDegree(midLat);
+
+  return Math.hypot(northMeters, eastMeters);
+}
+
+function calculateHeading(from, to) {
+  const midLat = (from.lat + to.lat) / 2;
+  const northMeters = (to.lat - from.lat) * METERS_PER_LAT_DEGREE;
+  const eastMeters = (to.lng - from.lng) * metersPerLngDegree(midLat);
+
+  return (Math.atan2(eastMeters, northMeters) * 180 / Math.PI + 360) % 360;
+}
+
 class Vehicle {
   constructor(id, route, speedKmH) {
     this.id = id;
@@ -17,51 +40,56 @@ class Vehicle {
     // Set initial position to first waypoint
     this.lat = route[0].lat;
     this.lng = route[0].lng;
+    this.heading = route[1] ? calculateHeading(route[0], route[1]) : 0;
   }
 
   move() {
     // Do NOT move if inactive, stopped, or crashed
     if (!this.active || this.speed === 0 || this.status === 'crash') return;
 
-    const target = this.route[this.currentWaypointIndex];
-    if (!target) return; // Reached End of Array
+    if (this.currentWaypointIndex >= this.route.length - 1) {
+      this.active = false;
+      return;
+    }
 
-    // Simple interpolation logic for movement
-    // Calculate distance to target waypoint
-    const dLat = target.lat - this.lat;
-    const dLng = target.lng - this.lng;
-    const dist = Math.sqrt(dLat * dLat + dLng * dLng);
+    let remainingDistance = (this.speed / 3.6) * 0.5;
 
-    // Calculate heading angle
-    // Note: Heading convention is 0 is North, 90 East, 180 South, 270 West
-    const angleRad = Math.atan2(dLng, dLat);
-    this.heading = (angleRad * 180 / Math.PI + 360) % 360;
+    while (
+      remainingDistance > POSITION_EPSILON_METERS &&
+      this.currentWaypointIndex < this.route.length - 1
+    ) {
+      const target = this.route[this.currentWaypointIndex + 1];
+      const currentPosition = { lat: this.lat, lng: this.lng };
+      const segmentDistance = distanceMeters(currentPosition, target);
 
-    // Advance speed step
-    // speed is km/h. Convert to m/s, then apply artificial map scale for lat/long degrees
-    const speedMs = this.speed / 3.6; 
-    
-    // We fire move() every 500ms, so we move (speedMs * 0.5) meters per update
-    // 1 lat degree ~ 111,000 meters. 
-    const moveDistMeters = speedMs * 0.5;
-    const stepInDegrees = moveDistMeters / 111000;
-
-    if (dist < stepInDegrees) {
-      // Reached waypoint!
-      this.lat = target.lat;
-      this.lng = target.lng;
-      this.currentWaypointIndex++;
-      
-      // Stop at the end of route (don't loop)
-      if (this.currentWaypointIndex >= this.route.length) {
-        this.currentWaypointIndex = this.route.length - 1;
-        this.active = false; // Deactivate when route is complete
+      if (segmentDistance <= POSITION_EPSILON_METERS) {
+        this.lat = target.lat;
+        this.lng = target.lng;
+        this.currentWaypointIndex++;
+        continue;
       }
-    } else {
-      // Move one step ahead
-      const ratio = stepInDegrees / dist;
-      this.lat += dLat * ratio;
-      this.lng += dLng * ratio;
+
+      this.heading = calculateHeading(currentPosition, target);
+
+      if (remainingDistance >= segmentDistance) {
+        this.lat = target.lat;
+        this.lng = target.lng;
+        this.currentWaypointIndex++;
+        remainingDistance -= segmentDistance;
+        continue;
+      }
+
+      const ratio = remainingDistance / segmentDistance;
+      this.lat += (target.lat - this.lat) * ratio;
+      this.lng += (target.lng - this.lng) * ratio;
+      remainingDistance = 0;
+    }
+
+    if (this.currentWaypointIndex >= this.route.length - 1) {
+      const lastWaypoint = this.route[this.route.length - 1];
+      this.lat = lastWaypoint.lat;
+      this.lng = lastWaypoint.lng;
+      this.active = false;
     }
   }
 
@@ -90,6 +118,7 @@ class Vehicle {
     this.currentWaypointIndex = 0;
     this.lat = this.route[0].lat;
     this.lng = this.route[0].lng;
+    this.heading = this.route[1] ? calculateHeading(this.route[0], this.route[1]) : 0;
   }
 }
 
