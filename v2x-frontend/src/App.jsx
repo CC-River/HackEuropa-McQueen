@@ -4,7 +4,6 @@ import socket from './socket';
 import Map from './components/Map';
 import AlertFeed from './components/AlertFeed';
 import StatusBar from './components/StatusBar';
-import DrivingView from './components/DrivingView';
 
 function App() {
   const [vehicles, setVehicles] = useState({});
@@ -50,28 +49,31 @@ function App() {
   const activeWarningsCount = alerts.length;
 
   return (
-    <div className="flex flex-col h-[100vh] w-[100vw] bg-[#000] overflow-hidden font-sans">
+    <div className="flex flex-col h-screen w-screen bg-black overflow-hidden font-sans">
       
-      {/* Main Content Area: Split 40 / 60 */}
-      <div className="flex w-full h-full overflow-hidden relative">
-        <Map vehicles={vehicles} alerts={alerts} />
+      <StatusBar 
+        vehicleCount={Object.keys(vehicles).length} 
+        activeWarnings={activeWarningsCount} 
+        latency={latency} 
+      />
 
-        {/* We identify 'v-ego' or fallback to the first vehicle to act as our driver logic */}
-        <DrivingView egoVehicle={vehicles['v-ego'] || Object.values(vehicles)[0]} />
+      {/* Main Content Area */}
+      <div className="flex flex-1 overflow-hidden relative">
+        <Map vehicles={vehicles} alerts={alerts} />
+        <AlertFeed alerts={alerts} />
         
         {/* Floating Action Controls */}
         <div className="absolute bottom-6 left-6 flex gap-4 z-50">
-           {/* Scenario Controls */}
            <button 
              onClick={handleStartDemo}
-             className="px-4 py-2 bg-blue-600/80 hover:bg-blue-500 text-white text-sm font-semibold rounded shadow-lg backdrop-blur-sm transition-transform hover:scale-105 active:scale-95"
+             className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded shadow-lg transition-transform hover:scale-105 active:scale-95"
            >
              Start Scenario Demo
            </button>
 
            <button 
              onClick={handleReset}
-             className="px-4 py-2 bg-gray-800/80 hover:bg-gray-700 text-gray-200 text-sm font-semibold border border-gray-600 rounded shadow-lg backdrop-blur-sm transition-transform hover:scale-105 active:scale-95"
+             className="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-gray-200 font-bold border border-gray-600 rounded shadow-lg transition-transform hover:scale-105 active:scale-95"
            >
              Reset Engine
            </button>
