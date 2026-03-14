@@ -54,7 +54,7 @@ export default function App(){
       <div className="flex flex-1">
 
         <div className="w-2/3">
-          <Map vehicles={vehicles}/>
+          <Map vehicles={vehicles} alerts={alerts}/>
         </div>
 
         <div className="w-1/3 border-l border-gray-700">

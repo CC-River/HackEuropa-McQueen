@@ -1,59 +1,88 @@
 import { useEffect, useRef } from "react";
-import mapboxgl from "mapbox-gl";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 
-mapboxgl.accessToken = "YOUR_MAPBOX_KEY";
+// Midtown Manhattan as default centre (matches routes.js)
+const DEFAULT_CENTER = [40.755, -73.982];
+const DEFAULT_ZOOM = 14;
 
-export default function Map({vehicles}){
+function getMarkerColour(vehicleId, alerts) {
+  // Find the most recent alert for this vehicle
+  const recent = alerts.find(
+    (a) => a.vehicleId === vehicleId || (a.involved && a.involved.includes(vehicleId))
+  );
+  if (!recent) return "green";
+  if (recent.type === "SOS") return "darkred";
+  if (recent.type === "COLLISION_WARNING") return "red";
+  if (recent.type === "BRAKE_HAZARD") return "orange";
+  return "green";
+}
 
+function makeIcon(colour) {
+  return L.divIcon({
+    className: "",
+    html: `<div style="
+      width:14px;height:14px;
+      background:${colour};
+      border-radius:50%;
+      border:2px solid white;
+      box-shadow:0 0 6px ${colour};
+      ${colour === "darkred" ? "animation:pulse 0.8s infinite alternate;" : ""}
+    "></div>`,
+    iconSize: [14, 14],
+    iconAnchor: [7, 7],
+  });
+}
+
+export default function Map({ vehicles, alerts = [] }) {
   const mapContainer = useRef(null);
   const map = useRef(null);
   const markers = useRef({});
 
-  useEffect(()=>{
-
-    map.current = new mapboxgl.Map({
-      container:mapContainer.current,
-      style:"mapbox://styles/mapbox/dark-v11",
-      center:[-73.9857,40.7484],
-      zoom:13
+  // Initialise map once
+  useEffect(() => {
+    if (map.current) return;
+    map.current = L.map(mapContainer.current, {
+      center: DEFAULT_CENTER,
+      zoom: DEFAULT_ZOOM,
+      zoomControl: true,
     });
 
-  },[]);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "© OpenStreetMap contributors",
+    }).addTo(map.current);
+  }, []);
 
+  // Update markers whenever vehicles or alerts change
+  useEffect(() => {
+    if (!map.current) return;
 
-  useEffect(()=>{
+    Object.values(vehicles).forEach((vehicle) => {
+      const colour = getMarkerColour(vehicle.id, alerts);
+      const icon = makeIcon(colour);
 
-    Object.values(vehicles).forEach(vehicle =>{
-
-      if(!markers.current[vehicle.id]){
-
-        const el = document.createElement("div");
-        el.style.width="12px";
-        el.style.height="12px";
-        el.style.background="green";
-        el.style.borderRadius="50%";
-
-        markers.current[vehicle.id] =
-        new mapboxgl.Marker(el)
-        .setLngLat([vehicle.lng,vehicle.lat])
-        .addTo(map.current);
-
+      if (!markers.current[vehicle.id]) {
+        // Create new marker
+        markers.current[vehicle.id] = L.marker([vehicle.lat, vehicle.lng], { icon })
+          .addTo(map.current)
+          .bindTooltip(vehicle.id, { permanent: true, direction: "top", offset: [0, -10] });
+      } else {
+        // Move existing marker and update colour
+        markers.current[vehicle.id].setLatLng([vehicle.lat, vehicle.lng]);
+        markers.current[vehicle.id].setIcon(icon);
       }
-      else{
-
-        markers.current[vehicle.id]
-        .setLngLat([vehicle.lng,vehicle.lat]);
-
-      }
-
     });
+  }, [vehicles, alerts]);
 
-  },[vehicles]);
-
-  return(
-    <div
-      ref={mapContainer}
-      className="w-full h-full"
-    />
-  )
+  return (
+    <>
+      <style>{`
+        @keyframes pulse {
+          from { box-shadow: 0 0 4px darkred; }
+          to   { box-shadow: 0 0 14px red; }
+        }
+      `}</style>
+      <div ref={mapContainer} style={{ width: "100%", height: "100%" }} />
+    </>
+  );
 }
