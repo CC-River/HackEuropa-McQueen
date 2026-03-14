@@ -1,0 +1,14 @@
+{
+  "name": "hackeuropa-mcqueen",
+  "version": "1.0.0",
+  "description": "V2X Driver Interface - Unified Launcher",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently -n \"frontend,backend,simulator\" -c \"blue,green,magenta\" \"npm run dev --prefix v2x-frontend\" \"npm start --prefix v2x-backend\" \"npm start --prefix v2x-backend/simulator\"",
+    "start": "npm run dev",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
